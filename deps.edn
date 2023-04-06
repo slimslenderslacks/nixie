@@ -1,0 +1,13 @@
+{:deps
+ {org.clojure/clojure {:mvn/version "1.11.1"}
+  org.clojure/tools.cli {:mvn/version "1.0.206"}
+  org.clj-commons/clj-http-lite {:mvn/version "1.0.13"}
+  babashka/process {:mvn/version "0.2.9"}
+
+  cider/cider-nrepl {:mvn/version "0.25.3-SNAPSHOT"}
+  clj-commons/clj-yaml {:mvn/version "1.0.26"}
+  cheshire/cheshire {:mvn/version "5.11.0"}
+  selmer/selmer {:mvn/version "1.12.58"}}
+ :aliases
+ {:build {:ns-default build
+          :deps {io.github.clojure/tools.build {:git/tag "v0.8.3" :git/sha "0d20256c40b5a6b6adbcbdf7d0c52cf9e22e994d"}}}}}

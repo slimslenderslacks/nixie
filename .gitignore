@@ -1,0 +1,9 @@
+/.nrepl-port
+/.lsp/
+/.clj-kondo/
+/.cpcache/
+/.direnv/
+/nixie
+/nixie.build_artifacts.txt
+/reports/
+/target/
