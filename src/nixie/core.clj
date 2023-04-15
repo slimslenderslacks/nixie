@@ -10,26 +10,23 @@
 
 (defn parse-linguist [s]
   (->> s
-       (re-find #"\{(.*)\}")
-       second
-       (#(string/split % #","))
-       (map #(string/split % #"=>"))
-       (map first)
-       (map read-string)))
+       (string/split-lines)
+       (map #(string/split % #"\s+"))
+       (map last)))
 
 (defn linguist [dir]
   (->
-   (process/process (format "ruby /Users/slim/slimslenderslacks/linguist/main.rb %s" dir)
+   (process/process (format "github-linguist %s" dir)
                     {:out :string
                      :err :string})
    deref
    :out
    parse-linguist))
 
-(def template (slurp "resources/template.flake.nix"))
+(defmacro template [] (slurp "resources/template.flake.nix"))
 
 (defn render [m]
-  (selmer/render template m))
+  (selmer/render (template) m))
 
 (comment
   (linguist "/Users/slim/slimslenderslacks/nanogpt/")
