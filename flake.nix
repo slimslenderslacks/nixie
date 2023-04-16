@@ -31,32 +31,47 @@
 	    checkPhase = "clj -M:test";
 	    nativeBuildInputs = [ pkgs.makeWrapper ];
 	    buildCommand = "clj -T:build uber";
+	    # the cljBinary environment variable is set up during the install phase
             postInstall = ''
 	      wrapProgram $cljBinary --set PATH ${pkgs.lib.makeBinPath [ github-linguist.packages.aarch64-darwin.default ]}
 	    '';
           };
 
+          clj-jdk = cljpkgs.customJdk {
+            cljDrv = self.packages."${system}".clj;
+            locales = "en,es";
+          };
+
+          # see https://www.graalvm.org/22.0/reference-manual/native-image/BuildConfiguration
           graal = cljpkgs.mkGraalBin {
             cljDrv = self.packages."${system}".clj;
    	    nativeBuildInputs = [ pkgs.makeWrapper ];
-	    preBuild = ''
-cat <<EOF > reflect-config.json
-[]
-EOF
-	    '';
             postInstall = ''
 	      wrapProgram $out/bin/nixie --set PATH ${pkgs.lib.makeBinPath [ github-linguist.packages.aarch64-darwin.default ]}
 	    '';
-	    extraNativeImageBuildArgs = ["-H:-CheckToolchain" 
-	                                 "-H:+ReportExceptionStackTraces" 
-					 "--native-image-info" 
-					 "--no-fallback" 
-					 "--initialize-at-build-time" 
-					 "--verbose" 
-					 "--enable-http" 
-					 "--enable-https"
-					 "-H:ReflectionConfigurationFiles=reflect-config.json"];
+	    extraNativeImageBuildArgs = ["--verbose"];
           };
+
+ 	  clj-container =
+            pkgs.dockerTools.buildLayeredImage {
+              name = "clj-nix";
+              tag = "latest";
+              config = {
+                Cmd = clj-nix.lib.mkCljCli { jdkDrv = self.packages."${system}".clj-jdk; };
+              };
+            };
+
+          graal-container =
+            let
+              graalDrv = self.packages."${system}".graal;
+            in
+            pkgs.dockerTools.buildLayeredImage {
+              name = "clj-graal-nix";
+              tag = "latest";
+              config = {
+                Cmd = "${graalDrv}/bin/${graalDrv.pname}";
+              };
+            };
 
 	  # not used directly - mkCljBin uses this to pull maven deps into the nix store
 	  clj-cache = cljpkgs.mk-deps-cache {
